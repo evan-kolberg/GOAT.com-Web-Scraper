@@ -11,16 +11,15 @@ options = webdriver.ChromeOptions()
 # options.add_argument('--disable-gpu')
 options.add_argument('--disable-extensions')
 macOS_service = Service('/Users/evankolberg/VS Code Projects/GOAT.com Web Scraper/chromedriver')
-win_service = Service(r'C:\Users\ekpro\VS Code Projects\GOAT.com-Web-Scraper\chromedriver.exe')
+win_service = Service('C:/Users/ekpro/VS Code Projects/GOAT.com-Web-Scraper/chromedriver.exe')
 
-driver = webdriver.Chrome(service=win_service, options=options)
+driver = webdriver.Chrome(service=macOS_service, options=options)
 driver.set_window_size(2048, 1080)
 driver.set_window_position(1200, 200, windowHandle='current')
 
 
 
-def on_the_hunt(query):
-
+def inquery(query):
     # creates the site-friendly query string
     query = query.split()
     for i in range(len(query)*2):
@@ -32,9 +31,20 @@ def on_the_hunt(query):
     driver.get(f'https://www.goat.com/search?query={query}')
 
 
+def crawler():
+    link_queue = []
 
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+    for i in soup.findAll('div', {'data-qa': 'grid_cell_product'}):
+        el = i.find(href=True)
+        link_queue.append(f"https://goat.com{el['href']}")
+
+    print(link_queue)
+    
 
 
 if __name__ == '__main__':
-    on_the_hunt('air jordan pro blue')
-    driver.close()
+    inquery('black hoodies')
+    crawler()
+    driver.quit()
