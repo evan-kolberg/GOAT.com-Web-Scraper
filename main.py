@@ -1,3 +1,4 @@
+from itertools import product
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
@@ -37,14 +38,26 @@ def crawler():
     soup = BeautifulSoup(driver.page_source, 'html.parser')
 
     for i in soup.findAll('div', {'data-qa': 'grid_cell_product'}):
-        el = i.find(href=True)
-        link_queue.append(f"https://goat.com{el['href']}")
+        link_queue.append(f"https://goat.com{i.find(href=True)['href']}")
 
-    print(link_queue)
+    # print(link_queue)
+
+    for i in link_queue:
+        driver.get(i)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+        product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
+        product_prices = soup.find('div', {'data-qa': 'buy_bar_desktop'}).get_text()
+
+        print('\n', product_info)
+        print(product_prices, '\n')
+
+
     
 
 
 if __name__ == '__main__':
-    inquery('black hoodies')
+    inquery('air jordan pro')
     crawler()
     driver.quit()
