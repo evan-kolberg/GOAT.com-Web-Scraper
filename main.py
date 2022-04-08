@@ -45,11 +45,13 @@ def crawler():
         product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
 
         # for shoes, it iterates through all the available sizes
-        if soup.find('div', {'data-swiper-slide-index':0}):    # tests if it is infact shoes
+        if soup.find('div', {'data-swiper-slide-index':0}): # tests if it is infact shoes
             while True:
                 if soup.find('div', {'data-swiper-slide-index':counter}):
                     data = soup.find('div', {'data-swiper-slide-index':counter}).get_text()
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
+                    if data.find('C') != -1: # checks to see if the price on the site actually says Currently Unavailable
+                            data = data[:data.find('C')] + ' ' + data[data.find('C'):]
                     prices.append(data)
                     counter += 1
                 else:
@@ -61,6 +63,8 @@ def crawler():
                     for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
                         data = i.get_text()
                         data = data[:data.find('$')] + ' ' + data[data.find('$'):]
+                        if data.find('C') != -1: # checks to see if the price on the site actually says Currently Unavailable
+                            data = data[:data.find('C')] + ' ' + data[data.find('C'):]
                         prices.append(data.upper())
                 except:
                     prices.append('SOMETHING REALLY BAD HAPPENED HERE!!!')
