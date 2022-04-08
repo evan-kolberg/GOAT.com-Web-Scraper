@@ -8,10 +8,10 @@ options.add_argument('--disable-extensions')
 macOS_service = Service('/Users/evankolberg/VS Code Projects/GOAT.com Web Scraper/chromedriver')
 win_service = Service('C:/Users/ekpro/VS Code Projects/GOAT.com-Web-Scraper/chromedriver.exe')
 
-driver = webdriver.Chrome(service=win_service, options=options)
+driver = webdriver.Chrome(service=macOS_service, options=options)
 driver.set_window_size(2048, 1080)
 driver.set_window_position(1200, 200, windowHandle='current')
-driver.minimize_window()
+# driver.minimize_window()
 
 
 
@@ -52,7 +52,7 @@ def crawler():
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
                     if data.find('C') != -1: # checks to see if the price on the site actually says Currently Unavailable
                             data = data[:data.find('C')] + ' ' + data[data.find('C'):]
-                    prices.append(data)
+                    prices.append(data.upper())
                     counter += 1
                 else:
                     break
