@@ -61,10 +61,13 @@ def crawler():
                     for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
                         data = i.get_text()
                         data = data[:data.find('$')] + ' ' + data[data.find('$'):]
-                        prices.append(data)
-                except AttributeError:
-                    prices.append('Currently Unavailable')
+                        prices.append(data.upper())
+                except:
+                    prices.append('SOMETHING REALLY BAD HAPPENED HERE!!!')
 
+        # if there are no prices
+        if len(prices) == 0:
+            prices.append('Currently Unavailable')
         
 
         print(f'\n{product_info}')
@@ -75,6 +78,6 @@ def crawler():
 
 
 if __name__ == '__main__':
-    inquery(input('Search for an item at https://goat.com:  '))
+    inquery(input('\nSearch at https://goat.com:  '))
     crawler()
     driver.quit()
