@@ -1,17 +1,37 @@
-from selenium.webdriver import Firefox
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.firefox.service import Service
-from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver import Chrome
+from selenium.webdriver import ChromeOptions
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from fake_useragent import UserAgent
+from selenium_stealth import stealth
 from bs4 import BeautifulSoup
+import os
 
-user_agent = '''Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) 
-AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36'''
+os.environ['WDM_LOG_LEVEL'] = '0'    # prevents webdriver manager from printing, it is quite annoying tbh
 
-options = FirefoxOptions()
-options.set_preference('--general.useragent.override', user_agent)
-options.add_argument('--width=960')
-options.add_argument('--height=540')
-driver = Firefox(service=Service(GeckoDriverManager().install()), options=options)
+user_agent = UserAgent().random    # generates a random user agent
+print(f'\nGenerated User Agent: {user_agent}')
+
+options = ChromeOptions()
+options.add_experimental_option('excludeSwitches', ['enable-automation'])
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
+options.add_experimental_option('useAutomationExtension', False)
+options.add_argument('--disable-blink-features=AutomationControlled')    # helps go undetected
+options.add_argument(f'--user-agent={user_agent}')
+options.add_argument('--window-size=960,540')
+options.add_argument('--incognito')    # doesn't save cookies after session
+driver = Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+# adds extra protection against getting detected
+stealth(driver,
+        languages=['en-US', 'en'],
+        vendor='Google Inc.',
+        platform='Win32',
+        webgl_vendor='Intel Inc.',
+        renderer='Intel Iris OpenGL Engine',
+        fix_hairline=True)
+
+driver.set_window_position(0, 0, windowHandle='current')
 
 
 def inquery(query):
@@ -50,7 +70,6 @@ def data_hound():
 
         # product structure 1
         if soup.find('div', {'data-swiper-slide-index':0}):
-            print('Structure 1')
             while True:
                 if soup.find('div', {'data-swiper-slide-index':counter}):
                     data = soup.find('div', {'data-swiper-slide-index':counter}).get_text()
@@ -65,31 +84,30 @@ def data_hound():
 
         # product structure 2
         elif soup.find('div', {'data-qa': 'buy_bar_item_desktop'}):
-            print('Structure 2')
             for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
                 data = i.get_text()
                 if 'Currently Unavailable' in data:
                     data = data[:data.find('C')] + ' ' + data[data.find('C'):]
                 else:
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
-                prices.append(data.upper())
+                if len(data) > 1:
+                    prices.append(data.upper())
 
         # product structure 3
         elif soup.find('div', {'class': 'swiper-slide'}):
-            print('Structure 3')
             for i in soup.findAll('div', {'class': 'swiper-slide'}):
                 data = i.get_text()
                 if 'Currently Unavailable' in data:
                     data = data[:data.find('C')] + ' ' + data[data.find('C'):]
                 else:
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
-                if not len(data) <= 1:
+                if len(data) > 1:
                     prices.append(data.upper())
 
         # if no matching structures are present
         else: 
             if len(prices) == 0:
-                prices.append('Need to add support for this structure')
+                prices.append('No structure found within webpage')
 
         print(f'{product_info}')
         print(f'{prices}\n')
