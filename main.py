@@ -9,15 +9,14 @@ import os
 
 os.environ['WDM_LOG_LEVEL'] = '0'    # prevents webdriver manager from printing, it is quite annoying tbh
 
-user_agent = UserAgent().random    # generates a random user agent
-print(f'\nGenerated User Agent: {user_agent}')
+ua = UserAgent(verify_ssl=False)
 
 options = ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-automation'])
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 options.add_experimental_option('useAutomationExtension', False)
 options.add_argument('--disable-blink-features=AutomationControlled')    # helps go undetected
-options.add_argument(f'--user-agent={user_agent}')
+options.add_argument(f'--user-agent={ua}')
 options.add_argument('--window-size=960,540')
 options.add_argument('--incognito')    # doesn't save cookies after session
 driver = Chrome(service=Service(ChromeDriverManager().install()), options=options)
