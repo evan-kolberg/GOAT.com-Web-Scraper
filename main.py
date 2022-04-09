@@ -1,21 +1,20 @@
-from selenium import webdriver
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.utils import ChromeType
 from bs4 import BeautifulSoup
 
+user_agent = '''Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) 
+AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36'''
 
-options = webdriver.ChromeOptions()
-options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36')
-options.add_experimental_option('excludeSwitches', ['enable-logging'])    # disables annoying chrome flag errors
-options.add_argument('--window-position=0,0')
-options.add_argument('--window-size=1920,1080')
-options.add_argument('--disable-gpu')
-options.add_argument('--disable-extensions')
-options.add_argument('--proxy-server="direct://"')
-options.add_argument('--proxy-bypass-list=*')
-options.add_argument('--incognito')
-driver = webdriver.Chrome(service=Service(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()), options=options)
+options = FirefoxOptions()
+profile = FirefoxProfile()
+profile.set_preference("general.useragent.override", user_agent)
+options.add_argument('--width=960')
+options.add_argument('--height=540')
+options.add_argument('--window-position=2460,810')
+driver = Firefox(service=Service(GeckoDriverManager().install()), options=options)
 
 
 def inquery(query):
@@ -36,6 +35,7 @@ def crawler():
 
     for i in soup.findAll('div', {'data-qa': 'grid_cell_product'}):
         link_queue.append(f"https://goat.com{i.find(href=True)['href']}")
+    print('\n')
 
     for i in link_queue:
         prices = []
@@ -47,34 +47,50 @@ def crawler():
         # gets the name of the product
         product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
 
-        # for shoes, it iterates through all the available sizes
-        if soup.find('div', {'data-swiper-slide-index':0}): # tests if it is infact shoes
+        # this is the main structure for shoes and items with a lot of sizes
+        if soup.find('div', {'data-swiper-slide-index':0}):
+            print('Structure 1')
             while True:
                 if soup.find('div', {'data-swiper-slide-index':counter}):
                     data = soup.find('div', {'data-swiper-slide-index':counter}).get_text()
-                    data = data[:data.find('$')] + ' ' + data[data.find('$'):]
-                    if data.find('C') != -1: # checks to see if the price on the site actually says Currently Unavailable
+                    if 'Currently Unavailable' in data:
                             data = data[:data.find('C')] + ' ' + data[data.find('C'):]
+                    else:
+                        data = data[:data.find('$')] + ' ' + data[data.find('$'):]
                     prices.append(data.upper())
                     counter += 1
                 else:
                     break
-        else:
-            # for other things, NOT shoes, with the names of sizes
-            if soup.find('div', {'data-qa': 'buy_bar_item_desktop'}):
-                for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
-                    data = i.get_text()
+
+        # structure for most other items
+        elif soup.find('div', {'data-qa': 'buy_bar_item_desktop'}):
+            print('Structure 2')
+            for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
+                data = i.get_text()
+                if 'Currently Unavailable' in data:
+                    data = data[:data.find('C')] + ' ' + data[data.find('C'):]
+                else:
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
-                    if data.find('C') != -1: # checks to see if the price on the site actually says Currently Unavailable
-                        data = data[:data.find('C')] + ' ' + data[data.find('C'):]
+                prices.append(data.upper())
+
+        # structure for a small number of items
+        elif soup.find('div', {'class': 'swiper-slide'}):
+            print('Structure 3')
+            for i in soup.findAll('div', {'class': 'swiper-slide'}):
+                data = i.get_text()
+                if 'Currently Unavailable' in data:
+                    data = data[:data.find('C')] + ' ' + data[data.find('C'):]
+                else:
+                    data = data[:data.find('$')] + ' ' + data[data.find('$'):]
+                if not len(data) <= 1:
                     prices.append(data.upper())
 
-        # if there are no prices
-        if len(prices) == 0:
-            prices.append('Need to add support for this structure')
-        
+        # if no matching structures are present
+        else: 
+            if len(prices) == 0:
+                prices.append('Need to add support for this structure')
 
-        print(f'\n{product_info}')
+        print(f'{product_info}')
         print(f'{prices}\n')
     
 
