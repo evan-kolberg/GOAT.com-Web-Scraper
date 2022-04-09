@@ -1,16 +1,18 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.utils import ChromeType
 from bs4 import BeautifulSoup
 
 options = webdriver.ChromeOptions()
+options.add_experimental_option('excludeSwitches', ['enable-logging'])    # disables annoying chrome flag errors
+options.add_argument('--window-position=1920,1080')
+options.add_argument('--window-size=1920,1080')
+options.add_argument('--disable-gpu')
 options.add_argument('--disable-extensions')
-macOS_service = Service('/Users/evankolberg/VS Code Projects/GOAT.com Web Scraper/chromedriver')
-win_service = Service('C:/Users/ekpro/VS Code Projects/GOAT.com-Web-Scraper/chromedriver.exe')
-
-driver = webdriver.Chrome(service=macOS_service, options=options)
-driver.set_window_size(2048, 1080)
-driver.set_window_position(1200, 200, windowHandle='current')
-driver.minimize_window()
+options.add_argument('--proxy-server="direct://"')
+options.add_argument('--proxy-bypass-list=*')
+driver = webdriver.Chrome(service=Service(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()), options=options)
 
 
 
@@ -72,8 +74,6 @@ def crawler():
 
         print(f'\n{product_info}')
         print(f'{prices}\n')
-
-# *** COMVERT EVERYTHIBNG TO REQUESTS - THERE IS NO SIMULATED INTERACTION WITH PAGE
     
 
 
