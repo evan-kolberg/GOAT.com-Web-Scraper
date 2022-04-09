@@ -4,16 +4,18 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.utils import ChromeType
 from bs4 import BeautifulSoup
 
+
 options = webdriver.ChromeOptions()
+options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36')
 options.add_experimental_option('excludeSwitches', ['enable-logging'])    # disables annoying chrome flag errors
-options.add_argument('--window-position=1920,1080')
+options.add_argument('--window-position=0,0')
 options.add_argument('--window-size=1920,1080')
 options.add_argument('--disable-gpu')
 options.add_argument('--disable-extensions')
 options.add_argument('--proxy-server="direct://"')
 options.add_argument('--proxy-bypass-list=*')
+options.add_argument('--incognito')
 driver = webdriver.Chrome(service=Service(ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()), options=options)
-
 
 
 def inquery(query):
