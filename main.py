@@ -45,7 +45,7 @@ def data_hound():
         try:
             product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
         except AttributeError:    # cannot convert NoneType to text, because no text was loaded
-            print(soup.find('HTML').get_text())
+            print(soup.find('body').get_text())
             driver.quit()
 
         # product structure 1
