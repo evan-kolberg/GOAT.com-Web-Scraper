@@ -1,19 +1,16 @@
 from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
-from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 
 user_agent = '''Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) 
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36'''
 
 options = FirefoxOptions()
-profile = FirefoxProfile()
-profile.set_preference("general.useragent.override", user_agent)
+options.set_preference('--general.useragent.override', user_agent)
 options.add_argument('--width=960')
 options.add_argument('--height=540')
-options.add_argument('--window-position=2460,810')
 driver = Firefox(service=Service(GeckoDriverManager().install()), options=options)
 
 
@@ -28,7 +25,7 @@ def inquery(query):
     driver.get(f'https://www.goat.com/search?query={query}')
 
 
-def crawler():
+def data_hound():
     link_queue = []
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -44,10 +41,14 @@ def crawler():
         driver.get(i)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        # gets the name of the product
-        product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
+        # gets the product info
+        try:
+            product_info = soup.find('div', {'data-qa': 'product_year'}).get_text().replace(soup.find('ol').get_text(), '')
+        except AttributeError:    # cannot convert NoneType to text, because no text was loaded
+            print(soup.find('HTML').get_text())
+            driver.quit()
 
-        # this is the main structure for shoes and items with a lot of sizes
+        # product structure 1
         if soup.find('div', {'data-swiper-slide-index':0}):
             print('Structure 1')
             while True:
@@ -62,7 +63,7 @@ def crawler():
                 else:
                     break
 
-        # structure for most other items
+        # product structure 2
         elif soup.find('div', {'data-qa': 'buy_bar_item_desktop'}):
             print('Structure 2')
             for i in soup.findAll('div', {'data-qa': 'buy_bar_item_desktop'}):
@@ -73,7 +74,7 @@ def crawler():
                     data = data[:data.find('$')] + ' ' + data[data.find('$'):]
                 prices.append(data.upper())
 
-        # structure for a small number of items
+        # product structure 3
         elif soup.find('div', {'class': 'swiper-slide'}):
             print('Structure 3')
             for i in soup.findAll('div', {'class': 'swiper-slide'}):
@@ -97,5 +98,5 @@ def crawler():
 
 if __name__ == '__main__':
     inquery(input('\nSearch at https://goat.com:  '))
-    crawler()
+    data_hound()
     driver.quit()
