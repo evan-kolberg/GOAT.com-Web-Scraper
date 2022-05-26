@@ -2,21 +2,19 @@ from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from fake_useragent import UserAgent
+from random_user_agent.user_agent import UserAgent
 from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 import os
 
 os.environ['WDM_LOG_LEVEL'] = '0'    # prevents webdriver manager from printing, it is quite annoying tbh
 
-ua = UserAgent(verify_ssl=False)
-
 options = ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-automation'])
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 options.add_experimental_option('useAutomationExtension', False)
 options.add_argument('--disable-blink-features=AutomationControlled')    # helps go undetected
-options.add_argument(f'--user-agent={ua}')
+options.add_argument(f'--user-agent={UserAgent()}')
 options.add_argument('--window-size=960,540')
 options.add_argument('--incognito')    # doesn't save cookies after session
 driver = Chrome(service=Service(ChromeDriverManager().install()), options=options)
